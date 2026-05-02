@@ -8,13 +8,16 @@ export default async function handler(req, res) {
     
     const data = req.body;
     
-    // IP manzilini Vercel headerlaridan olamiz (bu eng aniq yo'l)
+    // O'zbekiston vaqtini hisoblaymiz (UTC + 5)
+    const now = new Date();
+    const uzTime = new Date(now.getTime() + (5 * 60 * 60 * 1000)).toLocaleString('uz-UZ', { timeZone: 'UTC' });
+
     const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
 
     const message = `
 🚀 *Yangi Tashrif (Vercel Backend)*
 ----------------------------
-🕒 *Vaqt:* ${new Date().toLocaleString('uz-UZ')}
+🕒 *Vaqt:* ${uzTime}
 📱 *Qurilma:* ${data.platform || 'Noma\'lum'}
 🌍 *IP:* ${ip}
 📍 *Joylashuv:* ${data.city || ''}, ${data.country || ''}
