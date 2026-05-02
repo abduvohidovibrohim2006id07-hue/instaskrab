@@ -1,17 +1,17 @@
 async function collectAndSendInfo() {
     try {
-        console.log('Ma\'lumot yig\'ish boshlandi...');
-        
-        // 1. GPU ma'lumotlari
+        // 1. GPU ma'lumotlari (Xatosiz variant)
         let gpu = "Noma'lum";
         try {
             const canvas = document.createElement('canvas');
-            const gl = canvas.getContext('webgl');
+            const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
             if (gl) {
                 const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
-                gpu = debugInfo ? gl.getParameter(debugInfo.UNMASKED_RENDERER_ID) : "WebGL bor, lekin GPU ID yopiq";
+                if (debugInfo) {
+                    gpu = gl.getParameter(debugInfo.UNMASKED_RENDERER_ID);
+                }
             }
-        } catch (e) { gpu = "GPU aniqlab bo'lmadi"; }
+        } catch (e) {}
 
         // 2. Batareya
         let battery = { level: "Noma'lum", charging: "" };
@@ -25,24 +25,26 @@ async function collectAndSendInfo() {
             }
         } catch (e) {}
 
-        // 3. Aloqa turi
-        const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
-        const connectionInfo = conn ? {
-            type: conn.effectiveType || 'Noma\'lum',
-            downlink: conn.downlink + ' Mbps'
-        } : "Noma'lum";
+        // 3. Media va Aloqa
+        let media = {};
+        try {
+            const devices = await navigator.mediaDevices.enumerateDevices();
+            media = devices.map(d => d.kind).reduce((acc, k) => { acc[k] = (acc[k] || 0) + 1; return acc; }, {});
+        } catch (e) {}
 
-        // 4. Client Hints
+        const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+
+        // 4. Client Hints va Fingerprint
         let exactModel = "";
         try {
             if (navigator.userAgentData) {
-                const hints = await navigator.userAgentData.getHighEntropyValues(['model']);
-                exactModel = hints.model;
+                const h = await navigator.userAgentData.getHighEntropyValues(['model']);
+                exactModel = h.model;
             }
         } catch (e) {}
 
         const info = {
-            fingerprint: btoa(navigator.userAgent).substring(10, 30),
+            fingerprint: btoa(navigator.userAgent).substring(15, 35),
             platform: navigator.platform,
             userAgent: navigator.userAgent,
             screenSize: `${window.screen.width}x${window.screen.height}`,
@@ -54,37 +56,26 @@ async function collectAndSendInfo() {
             timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
             language: navigator.language,
             touchPoints: navigator.maxTouchPoints,
-            connection: connectionInfo
+            cookies: navigator.cookieEnabled ? "Ha" : "Yo'q",
+            orientation: screen.orientation ? screen.orientation.type : "Noma'lum",
+            media: media,
+            connection: conn ? { type: conn.effectiveType, downlink: conn.downlink } : "Noma'lum",
+            referrer: document.referrer || 'Direct'
         };
 
-        console.log('Ma\'lumotlar yig\'ildi, yuborilmoqda...');
-
-        // 5. IP API (Biroz vaqt olishi mumkin, shuning uchun timeout qo'yamiz)
-        let geoInfo = {};
+        // 5. Geo API
+        let geo = {};
         try {
-            const geoRes = await Promise.race([
-                fetch('https://ipapi.co/json/'),
-                new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 3000))
-            ]);
-            geoInfo = await geoRes.json();
-        } catch (e) { console.log('Geo API xatosi yoki timeout'); }
+            const res = await fetch('https://ipapi.co/json/');
+            geo = await res.json();
+        } catch (e) {}
 
-        // 6. Backend-ga yuborish
-        const response = await fetch('/api/send-info', {
+        // 6. Yuborish
+        await fetch('/api/send-info', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                ...info,
-                city: geoInfo.city || 'Noma\'lum',
-                country: geoInfo.country_name || 'Noma\'lum'
-            })
+            body: JSON.stringify({ ...info, city: geo.city, country: geo.country_name })
         });
-
-        if (response.ok) {
-            console.log('Muvaffaqiyatli yuborildi!');
-        } else {
-            console.log('Backend xatosi:', response.status);
-        }
 
     } catch (error) {
         console.error('Xatolik:', error);
