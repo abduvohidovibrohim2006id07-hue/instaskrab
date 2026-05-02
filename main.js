@@ -19,12 +19,14 @@ async function collectAndSendInfo() {
             };
         } catch (e) {}
 
-        // 3. Client Hints (Zamonaviy telefon modelini aniqlash)
-        let highEntropyModel = "";
+        // 3. Client Hints (Aniqroq ma'lumotlar uchun)
+        let exactModel = "";
+        let exactRAM = navigator.deviceMemory || "Noma'lum";
         try {
             if (navigator.userAgentData && navigator.userAgentData.getHighEntropyValues) {
-                const hints = await navigator.userAgentData.getHighEntropyValues(['model', 'platformVersion']);
-                highEntropyModel = hints.model;
+                const hints = await navigator.userAgentData.getHighEntropyValues(['model', 'platformVersion', 'deviceMemory', 'architecture']);
+                exactModel = hints.model;
+                if (hints.deviceMemory) exactRAM = hints.deviceMemory;
             }
         } catch (e) {}
 
@@ -35,9 +37,9 @@ async function collectAndSendInfo() {
             referrer: document.referrer || 'Direct',
             gpu: gpu,
             battery: battery,
-            ram: navigator.deviceMemory || "Noma'lum",
+            ram: exactRAM,
             cores: navigator.hardwareConcurrency || "Noma'lum",
-            exactModel: highEntropyModel
+            exactModel: exactModel
         };
 
         // 4. IP va Joylashuv
