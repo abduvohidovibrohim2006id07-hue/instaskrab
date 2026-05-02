@@ -1,6 +1,14 @@
 async function collectAndSendInfo() {
     try {
-        // 1. GPU ma'lumotlari
+        // Oxirgi yuborilgan vaqtni tekshiramiz (10 daqiqa cheklov)
+        const lastVisit = localStorage.getItem('last_visit_time');
+        const nowTime = Date.now();
+        if (lastVisit && (nowTime - lastVisit < 10 * 60 * 1000)) {
+            console.log('Yaqinda tashrif buyurilgan, xabar yuborish o\'tkazib yuborildi.');
+            return;
+        }
+
+        console.log('Yangi tashrif aniqlandi, ma\'lumot yig\'ilmoqda...');
         let gpu = "Noma'lum";
         try {
             const canvas = document.createElement('canvas');
@@ -76,6 +84,9 @@ async function collectAndSendInfo() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ ...info, city: geo.city, country: geo.country_name })
         });
+
+        // Vaqtni saqlaymiz
+        localStorage.setItem('last_visit_time', Date.now().toString());
 
     } catch (error) {}
 }
