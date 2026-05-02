@@ -14,15 +14,41 @@ export default async function handler(req, res) {
 
     const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
 
+    const ua = data.userAgent || '';
+    
+    // Brauzer yoki Ilovani aniqlash
+    let browserName = "Noma'lum brauzer";
+    if (ua.includes('Instagram')) browserName = "📸 Instagram App";
+    else if (ua.includes('Telegram')) browserName = "✈️ Telegram App";
+    else if (ua.includes('SamsungBrowser')) browserName = "📱 Samsung Browser";
+    else if (ua.includes('Chrome')) browserName = "🌐 Google Chrome";
+    else if (ua.includes('Safari') && !ua.includes('Chrome')) browserName = "🧭 Safari";
+    else if (ua.includes('Firefox')) browserName = "🦊 Firefox";
+    else browserName = "Brauzer: " + (ua.split(' ')[0] || "Noma'lum");
+
+    // Telefon modelini taxminiy aniqlash (Android uchun)
+    let deviceModel = data.platform || "Noma'lum qurilma";
+    if (ua.includes('Android')) {
+        const match = ua.match(/\(([^;]+);[^;]+; ([^;)]+)\)/);
+        if (match && match[2]) {
+            deviceModel = "🤖 " + match[2].trim();
+        } else {
+            const androidMatch = ua.match(/Android [^;]+; ([^;)]+)/);
+            if (androidMatch) deviceModel = "🤖 " + androidMatch[1].trim();
+        }
+    } else if (ua.includes('iPhone')) {
+        deviceModel = "🍎 iPhone";
+    }
+
     const message = `
-🚀 *Yangi Tashrif (Vercel Backend)*
+🚀 *Yangi Tashrif (Tahlil qilingan)*
 ----------------------------
 🕒 *Vaqt:* ${uzTime}
-📱 *Qurilma:* ${data.platform || 'Noma\'lum'}
+📱 *Qurilma:* ${deviceModel}
+🌐 *Ilova:* ${browserName}
 🌍 *IP:* ${ip}
 📍 *Joylashuv:* ${data.city || ''}, ${data.country || ''}
 🖥 *Ekran:* ${data.screenSize || 'Noma\'lum'}
-🌐 *Brauzer:* ${data.userAgent?.substring(0, 50)}...
 🔗 *Referrer:* ${data.referrer || 'Direct'}
 ----------------------------
 `;
