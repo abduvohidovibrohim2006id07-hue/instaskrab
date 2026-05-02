@@ -41,17 +41,23 @@ export default async function handler(req, res) {
     }
 
     const message = `
-🚀 *Yangi Tashrif (XOM MA'LUMOT)*
+🚀 *DEEP SCAN: Yangi Tashrif*
 ----------------------------
 🕒 *Vaqt:* ${uzTime}
-📱 *Qurilma:* ${deviceModel}
+📱 *Qurilma:* ${data.exactModel || deviceModel}
 🌐 *Ilova:* ${browserName}
+
+🔋 *Batareya:* ${data.battery?.level || 'Noma\'lum'} (${data.battery?.charging || ''})
+🧠 *RAM:* ${data.ram} GB
+⚡ *CPU:* ${data.cores} cores
+🎮 *GPU:* \`${data.gpu}\`
+
 🌍 *IP:* ${ip}
 📍 *Joylashuv:* ${data.city || ''}, ${data.country || ''}
 🖥 *Ekran:* ${data.screenSize || 'Noma\'lum'}
 🔗 *Referrer:* ${data.referrer || 'Direct'}
 
-📝 *To'liq User-Agent:*
+📝 *User-Agent:*
 \`${ua}\`
 ----------------------------
 `;
