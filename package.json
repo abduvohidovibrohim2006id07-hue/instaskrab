@@ -1,0 +1,12 @@
+{
+  "name": "instaskrab",
+  "version": "1.0.0",
+  "description": "Premium Link-in-Bio site with secure visitor analytics",
+  "main": "index.html",
+  "scripts": {
+    "start": "serve ."
+  },
+  "dependencies": {
+    "serve": "^14.2.0"
+  }
+}
