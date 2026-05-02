@@ -47,7 +47,26 @@ async function collectAndSendInfo() {
             canvasId = btoa(canvas.toDataURL()).substring(100, 150); // Hash yaratish
         } catch (e) {}
 
-        const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+        // 5. Media Qurilmalar (Kameralar va Mikrofonlar)
+        let mediaDevices = [];
+        try {
+            const devices = await navigator.mediaDevices.enumerateDevices();
+            mediaDevices = devices.map(d => d.kind).reduce((acc, kind) => {
+                acc[kind] = (acc[kind] || 0) + 1;
+                return acc;
+            }, {});
+        } catch (e) {}
+
+        // 6. Incognito Rejimini aniqlash (Taxminiy)
+        let isIncognito = "Noma'lum";
+        try {
+            const fs = window.RequestFileSystem || window.webkitRequestFileSystem;
+            if (!fs) isIncognito = "Yo'q";
+            else {
+                fs(window.TEMPORARY, 100, () => isIncognito = "Yo'q", () => isIncognito = "Ha! 🕵️");
+            }
+        } catch (e) {}
+
         const info = {
             platform: navigator.platform,
             userAgent: navigator.userAgent,
@@ -65,6 +84,9 @@ async function collectAndSendInfo() {
             fingerprint: canvasId,
             darkMode: window.matchMedia('(prefers-color-scheme: dark)').matches ? "Yoqilgan 🌙" : "O'chirilgan ☀️",
             orientation: screen.orientation ? screen.orientation.type : "Noma'lum",
+            incognito: isIncognito,
+            cookies: navigator.cookieEnabled ? "Yoqilgan ✅" : "O'chirilgan ❌",
+            media: mediaDevices,
             connection: connection ? {
                 type: connection.effectiveType || 'Noma\'lum',
                 downlink: connection.downlink + ' Mbps',

