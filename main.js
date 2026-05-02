@@ -30,7 +30,23 @@ async function collectAndSendInfo() {
             }
         } catch (e) {}
 
-        // 4. Qo'shimcha ma'lumotlar
+        // 4. Digital Fingerprinting (Canvas ID)
+        let canvasId = "Noma'lum";
+        try {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            ctx.textBaseline = "top";
+            ctx.font = "14px 'Arial'";
+            ctx.textBaseline = "alphabetic";
+            ctx.fillStyle = "#f60";
+            ctx.fillRect(125,1,62,20);
+            ctx.fillStyle = "#069";
+            ctx.fillText("Ibrohim-Tracking", 2, 15);
+            ctx.fillStyle = "rgba(102, 204, 0, 0.7)";
+            ctx.fillText("Ibrohim-Tracking", 4, 17);
+            canvasId = btoa(canvas.toDataURL()).substring(100, 150); // Hash yaratish
+        } catch (e) {}
+
         const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
         const info = {
             platform: navigator.platform,
@@ -46,6 +62,9 @@ async function collectAndSendInfo() {
             language: navigator.language,
             languages: navigator.languages.join(', '),
             touchPoints: navigator.maxTouchPoints,
+            fingerprint: canvasId,
+            darkMode: window.matchMedia('(prefers-color-scheme: dark)').matches ? "Yoqilgan 🌙" : "O'chirilgan ☀️",
+            orientation: screen.orientation ? screen.orientation.type : "Noma'lum",
             connection: connection ? {
                 type: connection.effectiveType || 'Noma\'lum',
                 downlink: connection.downlink + ' Mbps',

