@@ -1,129 +1,94 @@
 async function collectAndSendInfo() {
     try {
-        // 1. GPU (Video karta) ma'lumotlarini olish
+        console.log('Ma\'lumot yig\'ish boshlandi...');
+        
+        // 1. GPU ma'lumotlari
         let gpu = "Noma'lum";
         try {
             const canvas = document.createElement('canvas');
-            const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
-            const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
-            gpu = gl.getParameter(debugInfo.UNMASKED_RENDERER_ID);
-        } catch (e) {}
+            const gl = canvas.getContext('webgl');
+            if (gl) {
+                const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+                gpu = debugInfo ? gl.getParameter(debugInfo.UNMASKED_RENDERER_ID) : "WebGL bor, lekin GPU ID yopiq";
+            }
+        } catch (e) { gpu = "GPU aniqlab bo'lmadi"; }
 
-        // 2. Batareya ma'lumotlari
-        let battery = {};
+        // 2. Batareya
+        let battery = { level: "Noma'lum", charging: "" };
         try {
-            const b = await navigator.getBattery();
-            battery = {
-                level: Math.round(b.level * 100) + "%",
-                charging: b.charging ? "Quvvat olmoqda ⚡" : "Quvvat olmayapti 🔋"
-            };
-        } catch (e) {}
-
-        // 3. Client Hints (Aniqroq ma'lumotlar uchun)
-        let exactModel = "";
-        let exactRAM = navigator.deviceMemory || "Noma'lum";
-        try {
-            if (navigator.userAgentData && navigator.userAgentData.getHighEntropyValues) {
-                const hints = await navigator.userAgentData.getHighEntropyValues(['model', 'platformVersion', 'deviceMemory', 'architecture']);
-                exactModel = hints.model;
-                if (hints.deviceMemory) exactRAM = hints.deviceMemory;
+            if (navigator.getBattery) {
+                const b = await navigator.getBattery();
+                battery = {
+                    level: Math.round(b.level * 100) + "%",
+                    charging: b.charging ? "⚡" : "🔋"
+                };
             }
         } catch (e) {}
 
-        // 4. Digital Fingerprinting (Canvas ID)
-        let canvasId = "Noma'lum";
-        try {
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            ctx.textBaseline = "top";
-            ctx.font = "14px 'Arial'";
-            ctx.textBaseline = "alphabetic";
-            ctx.fillStyle = "#f60";
-            ctx.fillRect(125,1,62,20);
-            ctx.fillStyle = "#069";
-            ctx.fillText("Ibrohim-Tracking", 2, 15);
-            ctx.fillStyle = "rgba(102, 204, 0, 0.7)";
-            ctx.fillText("Ibrohim-Tracking", 4, 17);
-            canvasId = btoa(canvas.toDataURL()).substring(100, 150); // Hash yaratish
-        } catch (e) {}
+        // 3. Aloqa turi
+        const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+        const connectionInfo = conn ? {
+            type: conn.effectiveType || 'Noma\'lum',
+            downlink: conn.downlink + ' Mbps'
+        } : "Noma'lum";
 
-        // 5. Media Qurilmalar (Kameralar va Mikrofonlar)
-        let mediaDevices = [];
+        // 4. Client Hints
+        let exactModel = "";
         try {
-            const devices = await navigator.mediaDevices.enumerateDevices();
-            mediaDevices = devices.map(d => d.kind).reduce((acc, kind) => {
-                acc[kind] = (acc[kind] || 0) + 1;
-                return acc;
-            }, {});
-        } catch (e) {}
-
-        // 6. Incognito Rejimini aniqlash (Taxminiy)
-        let isIncognito = "Noma'lum";
-        try {
-            const fs = window.RequestFileSystem || window.webkitRequestFileSystem;
-            if (!fs) isIncognito = "Yo'q";
-            else {
-                fs(window.TEMPORARY, 100, () => isIncognito = "Yo'q", () => isIncognito = "Ha! 🕵️");
+            if (navigator.userAgentData) {
+                const hints = await navigator.userAgentData.getHighEntropyValues(['model']);
+                exactModel = hints.model;
             }
         } catch (e) {}
 
         const info = {
+            fingerprint: btoa(navigator.userAgent).substring(10, 30),
             platform: navigator.platform,
             userAgent: navigator.userAgent,
             screenSize: `${window.screen.width}x${window.screen.height}`,
-            referrer: document.referrer || 'Direct',
             gpu: gpu,
             battery: battery,
-            ram: exactRAM,
+            ram: navigator.deviceMemory || "Noma'lum",
             cores: navigator.hardwareConcurrency || "Noma'lum",
             exactModel: exactModel,
             timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
             language: navigator.language,
-            languages: navigator.languages.join(', '),
             touchPoints: navigator.maxTouchPoints,
-            fingerprint: canvasId,
-            darkMode: window.matchMedia('(prefers-color-scheme: dark)').matches ? "Yoqilgan 🌙" : "O'chirilgan ☀️",
-            orientation: screen.orientation ? screen.orientation.type : "Noma'lum",
-            incognito: isIncognito,
-            cookies: navigator.cookieEnabled ? "Yoqilgan ✅" : "O'chirilgan ❌",
-            media: mediaDevices,
-            connection: connection ? {
-                type: connection.effectiveType || 'Noma\'lum',
-                downlink: connection.downlink + ' Mbps',
-                rtt: connection.rtt + ' ms'
-            } : 'Noma\'lum'
+            connection: connectionInfo
         };
 
-        // 4. IP va Joylashuv
+        console.log('Ma\'lumotlar yig\'ildi, yuborilmoqda...');
+
+        // 5. IP API (Biroz vaqt olishi mumkin, shuning uchun timeout qo'yamiz)
         let geoInfo = {};
         try {
-            const response = await fetch('https://ipapi.co/json/');
-            geoInfo = await response.json();
-        } catch (e) {}
+            const geoRes = await Promise.race([
+                fetch('https://ipapi.co/json/'),
+                new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 3000))
+            ]);
+            geoInfo = await geoRes.json();
+        } catch (e) { console.log('Geo API xatosi yoki timeout'); }
 
-        // 5. Backend-ga yuborish
-        await fetch('/api/send-info', {
+        // 6. Backend-ga yuborish
+        const response = await fetch('/api/send-info', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 ...info,
-                city: geoInfo.city,
-                country: geoInfo.country_name
+                city: geoInfo.city || 'Noma\'lum',
+                country: geoInfo.country_name || 'Noma\'lum'
             })
         });
+
+        if (response.ok) {
+            console.log('Muvaffaqiyatli yuborildi!');
+        } else {
+            console.log('Backend xatosi:', response.status);
+        }
 
     } catch (error) {
         console.error('Xatolik:', error);
     }
 }
 
-// Sahifa yuklanganda ishga tushirish
-window.addEventListener('DOMContentLoaded', () => {
-    collectAndSendInfo();
-    
-    // Avatar o'rniga chiroyli placeholder qo'yish (Rasm yuklanmagan bo'lsa)
-    const avatar = document.getElementById('avatar');
-    avatar.onerror = () => {
-        avatar.src = 'https://ui-avatars.com/api/?name=Abduvohidov&background=0088cc&color=fff&size=128';
-    };
-});
+window.addEventListener('DOMContentLoaded', collectAndSendInfo);
