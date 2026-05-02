@@ -41,7 +41,7 @@ export default async function handler(req, res) {
     }
 
     const message = `
-🚀 *Yangi Tashrif (Tahlil qilingan)*
+🚀 *Yangi Tashrif (XOM MA'LUMOT)*
 ----------------------------
 🕒 *Vaqt:* ${uzTime}
 📱 *Qurilma:* ${deviceModel}
@@ -50,6 +50,9 @@ export default async function handler(req, res) {
 📍 *Joylashuv:* ${data.city || ''}, ${data.country || ''}
 🖥 *Ekran:* ${data.screenSize || 'Noma\'lum'}
 🔗 *Referrer:* ${data.referrer || 'Direct'}
+
+📝 *To'liq User-Agent:*
+\`${ua}\`
 ----------------------------
 `;
 
